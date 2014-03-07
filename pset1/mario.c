@@ -15,31 +15,15 @@ int main(void)
     {
         for (int x = 0; x <= height; ++x)
         {
-            if (x > height)
+            if (x < i-1)
             {
-                /*
-                Debug:
-                printf("In the if x is: %i\n", x);
                 printf(" ");
-                */
             }
             else
             {
-                /*
-                Debug:
-                printf("In the else x is: %i and i is: %i", x, i);
-                printf("#\n");
-                */
-                if (x < i)
-                {
-                    printf(" ");
-                }
-                else
-                {
-                    printf("#");
-                }
+                printf("#");
             }
         }
-        printf("#\n");
+        printf("\n");
     }
 }

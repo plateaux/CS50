@@ -14,19 +14,28 @@
 #include <string.h>
 #include "dictionary.h"
 
-/**
- * Returns true if word is in dictionary else false.
- */
-bool check(const char* word)
+// global trie struct for letters
+// Kudos to this tutorial for examples: http://simplestcodings.blogspot.com/2012/11/trie-implementation-in-c.html
+typedef struct trie
 {
-    return false;
-}
+    bool isAWord;
+    struct trie* children[27];
+} 
+trie;
+
+trie* firstNode;
+
+// number of words loaded
+int numberOfWords = 0;
 
 /**
  * Loads dictionary into memory.  Returns true if successful else false.
  */
 bool load(const char* dictionary)
 {
+    int aAsInt = (int)'a';
+    int zAsInt = (int)'z';
+    
     FILE *fp = fopen(dictionary, "r");
     if (fp == NULL)
     {
@@ -55,20 +64,19 @@ bool load(const char* dictionary)
             // if apostrophes, set character to z+1
             if (character == '\'')
             {
-				int zAsInt = (int)'z';
                 character = zAsInt + 1;
             }
 
             // If the character is not in trie...
-            if (currentNode->children[character - 'a'] == NULL)
+            if (currentNode->children[character - aAsInt] == NULL)
             {
                 // ... malloc a new node and go there
-                currentNode->children[character - 'a'] = malloc(sizeof(trie));
-                currentNode = currentNode->children[character - 'a'];
+                currentNode->children[character - aAsInt] = malloc(sizeof(trie));
+                currentNode = currentNode->children[character - aAsInt];
 	        }
 	        else // ... but if it is, go to the existing node
             {
-                currentNode = currentNode->children[character - 'a'];
+                currentNode = currentNode->children[character - aAsInt];
 	        }
 	    }
 
@@ -80,18 +88,73 @@ bool load(const char* dictionary)
 }
 
 /**
+ * Returns true if word is in dictionary else false.
+ */
+bool check(const char* word)
+{
+    int aAsInt = (int)'a';
+    int zAsInt = (int)'z';
+    // set a trie* to point to firstNode
+    trie* currentNode = firstNode;
+	
+	//loop through word
+	int i = 0;
+	while(word[i] != '\0')
+    {
+        char inChar = word[i];
+        
+        // find apostrophes
+        if (word[i] == '\'')
+        {
+            inChar = zAsInt + 1;
+        }
+		
+        int childIndex = tolower(inChar) - aAsInt; 	//index to check for child node
+       
+        // go to childIndex if not NULL, else return false
+        if (currentNode->children[childIndex] != NULL)
+        {
+            currentNode = currentNode->children[childIndex];
+            i++;
+	    }  
+        else
+        {
+            return false;
+         } 
+    } // close for loop
+    
+    // if word exists, return true.
+    if (currentNode->isAWord == true)
+    {
+        return true;
+    }
+	else
+	{
+    return false;
+	}
+}
+
+/**
  * Returns number of words in dictionary if loaded.
  */
 unsigned int size(void)
 {
-    return 0;
+    return numberOfWords;
 }
-
 
 /**
  * Unloads dictionary from memory
 */
 bool unload(void)
 {
-    return false;
+	// free each of the children if not NULL
+    for(int unloadI = 0; unloadI < 27; unloadI++)
+    {
+		trie* currentNode = firstNode;
+        if (currentNode->children[unloadI] != NULL)
+        {
+            free(currentNode->children[unloadI]);  
+        }      
+	}
+    return true;
 }
